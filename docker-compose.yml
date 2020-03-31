@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 'prose-challenge:latest'
+    environment:
+      - PGHOST=db
+      - PGPORT=5432
+      - PGDATABASE=prose-challenge
+      - PGUSER=postgres
+      - PGPASSWORD=challenge2!
+      ## Add app configuration variables below
+      # - SECRET_KEY=my_secret_key
+    links:
+      - db
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/usr/src/app:cached
+    command: ./tools/pgwait.sh db -- python3 manage.py runserver 0.0.0.0:8000
+
+  db:
+    image: 'postgres:11'
+    environment:
+      - POSTGRES_PASSWORD=challenge2!  # Create postgres user with this password
+
+      - PGDATABASE=prose-challenge
+      - PGUSER=postgres
+      - PGPASSWORD=challenge2!
+
+    ## If you need/want to bind the PG port to your local machine:
+    # ports:
+    #  - '5432:5432'
+    volumes:
+      - .cache/pgdata:/var/lib/postgresql/data:delegated
+      - ./tools/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d
